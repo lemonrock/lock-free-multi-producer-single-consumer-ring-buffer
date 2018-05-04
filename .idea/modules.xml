@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/lock-free-multi-producer-single-consumer-ring-buffer.iml" filepath="$PROJECT_DIR$/lock-free-multi-producer-single-consumer-ring-buffer.iml" />
+    </modules>
+  </component>
+</project>
