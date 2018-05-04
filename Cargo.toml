@@ -5,7 +5,7 @@
 [package]
 name = "lock-free-multi-producer-single-consumer-ring-buffer"
 description = "A lock-free, multi-producer, single-consumer (MPSC) ring buffer. Optimized for sending and receiving 'bursts' of messages. Can also be used as a ring queue. It is a Rust port of Mindaugas Rasiukevicius's ringbuf."
-keywords = ["lock-free", "mpsc", "multi-producer", "queue", "ring", "buffer"]
+keywords = ["lock-free", "mpsc", "queue", "ring", "buffer"]
 categories = ["concurrency", "data-structures", "network-programming"]
 license = "BSD-2-Clause"
 authors = ["Raphael Cohn <raphael.cohn@stormmq.com>"]
