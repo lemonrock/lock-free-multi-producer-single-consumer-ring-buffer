@@ -48,7 +48,8 @@ impl<T: Copy> RingBufferInner<T>
 		
 		unsafe
 		{
-			let mut this = NonNull::new_unchecked(Global.alloc(Self::layout(number_of_producers, space as usize)) as *mut Self);
+			let x = Global.alloc(Self::layout(number_of_producers, space as usize)).expect("Out of memory");
+			let mut this = NonNull::new_unchecked(x.as_ptr() as *mut Self);
 			
 			{
 				let this_mut = &mut this.as_mut();
@@ -84,8 +85,7 @@ impl<T: Copy> RingBufferInner<T>
 	{
 		let layout = Self::layout(self.number_of_producers, self.space as usize);
 		
-		let opaque = self as *mut _ as *mut Opaque;
-		unsafe { Global.dealloc(opaque, layout) }
+		unsafe { Global.dealloc(NonNull::new_unchecked(self as *mut _ as *mut _), layout) }
 	}
 	
 	#[inline(always)]

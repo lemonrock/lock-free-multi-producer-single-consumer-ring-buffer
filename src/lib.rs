@@ -81,14 +81,13 @@
 extern crate core;
 
 
+use ::std::alloc::Alloc;
+use ::std::alloc::Global;
+use ::std::alloc::Layout;
 use ::std::cell::Cell;
 use ::std::cell::UnsafeCell;
 use ::std::cmp::min;
 use ::std::cmp::max;
-use ::std::heap::Global;
-use ::std::heap::GlobalAlloc;
-use ::std::heap::Layout;
-use ::std::heap::Opaque;
 use ::std::intrinsics::atomic_cxchgweak;
 use ::std::intrinsics::unlikely;
 use ::std::marker::PhantomData;
