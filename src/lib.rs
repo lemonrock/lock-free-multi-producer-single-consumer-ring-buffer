@@ -16,20 +16,32 @@
 //!
 //! use ::lock_free_multi_produce_single_consume_ring_buffer::*;
 //!
-//! // For ony one consumer thread.
-//! let ring_buffer_consumer = RingBufferConsumer::new(length, number_of_producers);
+//! let (ring_buffer_consumer, ring_buffer_producers) = RingBuffer::new(capacity, number_of_producers);
 //!
 //! // For each producer thread.
-//! let ring_buffer_producer = ring_buffer_consumer.producer(index_less_than_length);
-//! ring_buffer_producer.acquire(length);
-//! // use buffer
+//! let ring_buffer_producer = ring_buffer_producers.get(0);
+//!
+//! let result = ring_buffer_producer.acquire(length);
+//! // result is `None` if length was too much; try a shorter length.
+//!
+//! let slice_guard = result.unwrap();
+//!
+//! // Dereferences to a slice.
+//! // slice_guard[0] = some_value;
+//!
+//! // Produce (relinquishes the slice).
+//! drop(slice_guard);
+//!
 //! ring_buffer_producer.produce();
 //!
-//! // For each cosumer thread.
-//! let (to_write, offset) = ring_buffer_consumer.consume();
-//! // use buffer
-//! ring_buffer_consumer.release(number_of_bytes);
+//! // For each consumer thread.
+//! let slice_guard = ring_buffer_consumer.consume();
 //!
+//! // Dereferences to a slice.
+//! println!("should be `some_value`", slice_guard[0]);
+//!
+//! // Releases the slice so producers can now use it.
+//! drop(slice_guard);
 //! ```
 //!
 //! ## The following documentation is originally "Copyright (c) 2016-2017 Mindaugas Rasiukevicius <rmind at noxt eu>".
@@ -78,7 +90,7 @@
 //! The algorithm sets `WrapLockBit` in the `seen` value before advancing the `next` and clears this bit after the successful advancing; this ensures that only the stable `ready` observed by the consumer.
 
 
-extern crate core;
+#[macro_use] extern crate likely;
 
 
 use ::std::alloc::Alloc;
@@ -89,10 +101,12 @@ use ::std::cell::UnsafeCell;
 use ::std::cmp::min;
 use ::std::cmp::max;
 use ::std::intrinsics::atomic_cxchgweak;
-use ::std::intrinsics::unlikely;
 use ::std::marker::PhantomData;
 use ::std::mem::align_of;
 use ::std::mem::size_of;
+use ::std::mem::uninitialized;
+use ::std::ops::Deref;
+use ::std::ops::DerefMut;
 use ::std::ptr::NonNull;
 use ::std::ptr::write;
 use ::std::slice::from_raw_parts;
@@ -103,15 +117,16 @@ use ::std::sync::atomic::spin_loop_hint;
 use std::sync::Arc;
 
 
+include!("fence_stores.rs");
 include!("RingBuffer.rs");
 include!("RingBufferConsumer.rs");
 include!("RingBufferConsumerGuard.rs");
 include!("RingBufferInner.rs");
+include!("RingBufferInnerHeader.rs");
 include!("RingBufferInnerDropHandler.rs");
 include!("RingBufferOffset.rs");
 include!("RingBufferProducer.rs");
 include!("RingBufferProducerGuard.rs");
 include!("RingBufferProducerInner.rs");
-include!("RingBufferProducerIterator.rs");
 include!("SpinLockBackOff.rs");
 include!("VolatileRingBufferOffset.rs");

@@ -19,7 +19,10 @@
       <w>cpuid</w>
       <w>cvac</w>
       <w>dedup</w>
+      <w>dequeued</w>
+      <w>deref</w>
       <w>dereferenced</w>
+      <w>dereferencing</w>
       <w>eagain</w>
       <w>ebusy</w>
       <w>ecanceled</w>
@@ -122,6 +125,7 @@
       <w>toid</w>
       <w>tsigas</w>
       <w>unsafety</w>
+      <w>usize</w>
       <w>wakeups</w>
       <w>wasm</w>
       <w>wcsdup</w>

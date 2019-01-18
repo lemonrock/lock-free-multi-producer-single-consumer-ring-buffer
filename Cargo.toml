@@ -17,6 +17,9 @@ readme = "README.md"
 publish = true
 version = "0.2.0"
 
+[dependencies]
+likely = "^0.1.0"
+
 [profile.release]
 opt-level = 3
 debug = false
