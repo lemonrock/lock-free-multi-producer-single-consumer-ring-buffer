@@ -37,12 +37,15 @@
 //! // For each consumer thread.
 //! let slice_guard = ring_buffer_consumer.consume();
 //!
-//! // Dereferences to a slice.
-//! println!("should be `some_value`", slice_guard[0]);
+//! // Iterate, move out, etc.
+//! println!("should be `some_value`", slice_guard.move_out(slice_guard.len())[0]);
 //!
 //! // Releases the slice so producers can now use it.
 //! drop(slice_guard);
 //! ```
+//!
+//! Once all the producers and the consumer are dropped then the memory underlying the ring buffer is freed and any unconsumed items in it are safely `Drop`ped.
+//!
 //!
 //! ## The following documentation is originally "Copyright (c) 2016-2017 Mindaugas Rasiukevicius <rmind at noxt eu>".
 //!
@@ -104,9 +107,11 @@ use ::std::intrinsics::atomic_cxchgweak;
 use ::std::marker::PhantomData;
 use ::std::mem::align_of;
 use ::std::mem::size_of;
+use ::std::mem::transmute_copy;
 use ::std::mem::uninitialized;
 use ::std::ops::Deref;
 use ::std::ops::DerefMut;
+use ::std::ptr::drop_in_place;
 use ::std::ptr::NonNull;
 use ::std::ptr::write;
 use ::std::slice::from_raw_parts;

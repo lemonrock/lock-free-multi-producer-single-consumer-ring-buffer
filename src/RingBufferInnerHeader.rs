@@ -4,7 +4,7 @@
 
 #[derive(Debug)]
 #[repr(C)]
-struct RingBufferInnerHeader<T: Copy>
+struct RingBufferInnerHeader<T: Sized>
 {
 	/// Ring buffer space (in bytes).
 	space: usize,
@@ -24,7 +24,7 @@ struct RingBufferInnerHeader<T: Copy>
 	number_of_producers: usize,
 }
 
-impl<T: Copy> RingBufferInnerHeader<T>
+impl<T: Sized> RingBufferInnerHeader<T>
 {
 	#[cfg(target_pointer_width = "64")] const WrapCounter: usize = 0x7FFFFFFF00000000;
 	#[cfg(target_pointer_width = "32")] const WrapCounter: usize = 0x7FFF0000;
@@ -272,6 +272,20 @@ impl<T: Copy> RingBufferInnerHeader<T>
 	{
 		let pointer = self.buffer_pointer(offset);
 		unsafe { from_raw_parts_mut(pointer, count) }
+	}
+
+	pub(crate) fn drop_remaining_data(&self, parent: &RingBufferInner<T>)
+	{
+		// Done twice in case of wrap-around.
+		for _ in 0 .. self.number_of_producers * 2
+		{
+			let (count, offset) = self.consume(parent);
+			let buffer_slice = self.buffer_consumer_slice_mutable(count, offset);
+			for datum_pointer in buffer_slice.iter_mut()
+			{
+				unsafe { drop_in_place(datum_pointer) }
+			}
+		}
 	}
 
 	#[inline(always)]

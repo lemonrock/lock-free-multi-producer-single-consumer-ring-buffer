@@ -4,13 +4,13 @@
 
 /// Produces bursts of messages to put into the ring buffer.
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
-pub struct RingBufferProducer<T: Copy>
+pub struct RingBufferProducer<T: Sized>
 {
 	ring_buffer: RingBuffer<T>,
 	ring_buffer_producer_inner_non_null: NonNull<RingBufferProducerInner>,
 }
 
-impl<T: Copy> RingBufferProducer<T>
+impl<T: Sized> RingBufferProducer<T>
 {
 	/// Request a space of a given `count` in the ring buffer.
 	///

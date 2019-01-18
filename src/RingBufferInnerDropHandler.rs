@@ -3,12 +3,12 @@
 
 
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
-struct RingBufferInnerDropHandler<T: Copy>(NonNull<RingBufferInner<T>>);
+struct RingBufferInnerDropHandler<T: Sized>(NonNull<RingBufferInner<T>>);
 
-impl<T: Copy> Drop for RingBufferInnerDropHandler<T>
+impl<T: Sized> Drop for RingBufferInnerDropHandler<T>
 {
 	fn drop(&mut self)
 	{
-		unsafe { self.0.as_mut().free() };
+		unsafe { self.0.as_ptr().drop_in_place() }
 	}
 }

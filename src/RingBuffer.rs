@@ -7,15 +7,29 @@
 /// Not particularly cheap to consume from (as it walks all producers) so try to use as few producers as possible and consume as much as possible with each call.
 ///
 /// Multi-Producer, Single-Consumer (MP-SC).
-#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq)]
-pub struct RingBuffer<T: Copy>
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq, Hash)]
+pub struct RingBuffer<T: Sized>
 {
 	ring_buffer_inner_non_null: NonNull<RingBufferInner<T>>,
 	inner_drop_handle: Arc<RingBufferInnerDropHandler<T>>,
 	marker: PhantomData<T>,
 }
 
-impl<T: Copy> RingBuffer<T>
+impl<T: Sized> Clone for RingBuffer<T>
+{
+	#[inline(always)]
+	fn clone(&self) -> Self
+	{
+		Self
+		{
+			ring_buffer_inner_non_null: self.ring_buffer_inner_non_null,
+			inner_drop_handle: self.inner_drop_handle.clone(),
+			marker: PhantomData,
+		}
+	}
+}
+
+impl<T: Sized> RingBuffer<T>
 {
 	/// Creates a new ring buffer and returns a consumer to it and producers for it.
 	///

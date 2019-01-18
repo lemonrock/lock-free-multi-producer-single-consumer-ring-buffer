@@ -10,7 +10,7 @@
 ///
 /// This data is considered to be ***uninitialized***.
 #[derive(Debug)]
-pub struct RingBufferProducerGuard<'a, T: 'a + Copy>
+pub struct RingBufferProducerGuard<'a, T: 'a + Sized>
 {
 	/// Buffer slice to produce.
 	///
@@ -20,7 +20,7 @@ pub struct RingBufferProducerGuard<'a, T: 'a + Copy>
 	producer: &'a RingBufferProducer<T>,
 }
 
-impl<'a, T: 'a + Copy> Deref for RingBufferProducerGuard<'a, T>
+impl<'a, T: 'a + Sized> Deref for RingBufferProducerGuard<'a, T>
 {
 	type Target = [T];
 
@@ -31,7 +31,7 @@ impl<'a, T: 'a + Copy> Deref for RingBufferProducerGuard<'a, T>
 	}
 }
 
-impl<'a, T: 'a + Copy> DerefMut for RingBufferProducerGuard<'a, T>
+impl<'a, T: 'a + Sized> DerefMut for RingBufferProducerGuard<'a, T>
 {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target
@@ -40,7 +40,7 @@ impl<'a, T: 'a + Copy> DerefMut for RingBufferProducerGuard<'a, T>
 	}
 }
 
-impl<'a, T: 'a + Copy> Drop for RingBufferProducerGuard<'a, T>
+impl<'a, T: 'a + Sized> Drop for RingBufferProducerGuard<'a, T>
 {
 	#[inline(always)]
 	fn drop(&mut self)

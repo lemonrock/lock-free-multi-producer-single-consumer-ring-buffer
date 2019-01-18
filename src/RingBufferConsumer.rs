@@ -6,9 +6,9 @@
 ///
 /// Not particularly cheap to consume from (as it walks all producers) so try to use as few producers as possible and consume as much as possible with each call.
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
-pub struct RingBufferConsumer<T: Copy>(RingBuffer<T>);
+pub struct RingBufferConsumer<T: Sized>(RingBuffer<T>);
 
-impl<T: Copy> RingBufferConsumer<T>
+impl<T: Sized> RingBufferConsumer<T>
 {
 	/// Get a contiguous range which is ready to be consumed.
 	///
@@ -23,6 +23,7 @@ impl<T: Copy> RingBufferConsumer<T>
 		RingBufferConsumerGuard
 		{
 			buffer_slice: self.reference().buffer_consumer_slice_reference(count, offset),
+			release_count: count,
 			consumer: self,
 		}
 	}

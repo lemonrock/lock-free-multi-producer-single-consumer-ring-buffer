@@ -4,7 +4,7 @@
 
 #[derive(Debug)]
 #[repr(C)]
-struct RingBufferInner<T: Copy>
+struct RingBufferInner<T: Sized>
 {
 	/// Fixed size field.
 	header: RingBufferInnerHeader<T>,
@@ -16,7 +16,18 @@ struct RingBufferInner<T: Copy>
 	buffer: PhantomData<T>,
 }
 
-impl<T: Copy> Deref for RingBufferInner<T>
+impl<T: Sized> Drop for RingBufferInner<T>
+{
+	#[inline(always)]
+	fn drop(&mut self)
+	{
+		self.drop_remaining_data(self);
+
+		unsafe { Global.dealloc(NonNull::new_unchecked(self as *mut _ as *mut _), self.layout()) }
+	}
+}
+
+impl<T: Sized> Deref for RingBufferInner<T>
 {
 	type Target = RingBufferInnerHeader<T>;
 
@@ -27,7 +38,7 @@ impl<T: Copy> Deref for RingBufferInner<T>
 	}
 }
 
-impl<T: Copy> DerefMut for RingBufferInner<T>
+impl<T: Sized> DerefMut for RingBufferInner<T>
 {
 	#[inline(always)]
 	fn deref_mut(&mut self) -> &mut Self::Target
@@ -36,7 +47,7 @@ impl<T: Copy> DerefMut for RingBufferInner<T>
 	}
 }
 
-impl<T: Copy> RingBufferInner<T>
+impl<T: Sized> RingBufferInner<T>
 {
 	#[inline(always)]
 	pub(crate) fn allocate(capacity: usize, number_of_producers: usize) -> NonNull<Self>
@@ -84,13 +95,6 @@ impl<T: Copy> RingBufferInner<T>
 	pub(crate) fn initialize_buffer(&mut self, after_last_ring_buffer_producer_inner_non_null: NonNull<RingBufferProducerInner>)
 	{
 		self.header.initialize_buffer(after_last_ring_buffer_producer_inner_non_null);
-	}
-	
-	#[inline(always)]
-	pub(crate) fn free(&mut self)
-	{
-		let layout = self.layout();
-		unsafe { Global.dealloc(NonNull::new_unchecked(self as *mut _ as *mut _), layout) }
 	}
 
 	#[inline(always)]
