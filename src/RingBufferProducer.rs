@@ -22,24 +22,23 @@ impl<T: Copy> RingBufferProducer<T>
 	///
 	/// * `count` should not be zero.
 	/// * `count` should not exceed the buffer size.
+	///
+	/// Returns an Err if the producer could acquire a slice of the desired `count`.
 	#[inline(always)]
-	pub fn acquire<'a>(&'a self, count: usize) -> Option<RingBufferProducerGuard<'a, T>>
+	pub fn acquire<'a>(&'a self, count: usize) -> Result<RingBufferProducerGuard<'a, T>, ()>
 	{
 		match self.reference().acquire(self.producer(), count)
 		{
-			None => None,
+			Err(()) => Err(()),
 
-			Some(offset) =>
-			{
-				Some
-				(
-					RingBufferProducerGuard
-					{
-						buffer_slice: self.reference().buffer_consumer_slice_mutable(count, offset),
-						producer: self,
-					}
-				)
-			}
+			Ok(offset) => Ok
+			(
+				RingBufferProducerGuard
+				{
+					buffer_slice: self.reference().buffer_consumer_slice_mutable(count, offset),
+					producer: self,
+				}
+			)
 		}
 	}
 
@@ -59,14 +58,14 @@ impl<T: Copy> RingBufferProducer<T>
 		{
 			match self.acquire(try_to_acquire_count)
 			{
-				Some(mut slice_guard) => unsafe
+				Ok(mut slice_guard) => unsafe
 				{
 					let from = populate_with.len() - try_to_acquire_count;
 					slice_guard.as_mut_ptr().copy_from_nonoverlapping(populate_with.get_unchecked(from), try_to_acquire_count);
 					populate_with.set_len(from);
 				},
 
-				None =>
+				Err(()) =>
 				{
 					let can_not_acquire_a_zero_slice_so_give_up_and_drop_remaining_file_descriptors = try_to_acquire_count == 1;
 					if can_not_acquire_a_zero_slice_so_give_up_and_drop_remaining_file_descriptors

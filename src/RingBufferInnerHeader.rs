@@ -37,7 +37,7 @@ impl<T: Copy> RingBufferInnerHeader<T>
 	const OffsetMask: RingBufferOffset = 0x00000000FFFFFFFF;
 
 	#[inline(always)]
-	pub(crate) fn acquire(&self, producer: &mut RingBufferProducerInner, count: usize) -> Option<usize>
+	pub(crate) fn acquire(&self, producer: &mut RingBufferProducerInner, count: usize) -> Result<usize, ()>
 	{
 		debug_assert_ne!(count, 0, "length can not be zero");
 		debug_assert!(count <= self.capacity, "count '{}' exceeds self.capacity '{}'", count, self.capacity);
@@ -66,7 +66,7 @@ impl<T: Copy> RingBufferInnerHeader<T>
 			if unlikely!(next < written && target >= written)
 			{
 				producer.seen_offset.write(Self::MaximumOffset);
-				return None
+				return Err(())
 			}
 
 			if unlikely!(target >= self.capacity)
@@ -90,7 +90,7 @@ impl<T: Copy> RingBufferInnerHeader<T>
 				if (target & Self::OffsetMask) >= written
 				{
 					producer.seen_offset.write(Self::MaximumOffset);
-					return None
+					return Err(())
 				}
 
 				// Increment the wrap-around counter.
@@ -125,7 +125,7 @@ impl<T: Copy> RingBufferInnerHeader<T>
 			self.next_mutable().write(target & Self::WrapLockMask)
 		}
 		debug_assert!((target & Self::OffsetMask) <= self.capacity);
-		Some(next)
+		Ok(next)
 	}
 
 	#[inline(always)]

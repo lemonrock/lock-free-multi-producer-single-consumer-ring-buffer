@@ -10,23 +10,25 @@
 #[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq)]
 pub struct RingBuffer<T: Copy>
 {
-	inner: NonNull<RingBufferInner<T>>,
+	ring_buffer_inner_non_null: NonNull<RingBufferInner<T>>,
 	inner_drop_handle: Arc<RingBufferInnerDropHandler<T>>,
 	marker: PhantomData<T>,
 }
 
 impl<T: Copy> RingBuffer<T>
 {
-	/// Creates a new ring buffer.
+	/// Creates a new ring buffer and returns a consumer to it and producers for it.
+	///
+	/// When the last consumer or producer is dropped, the ring buffer is freed.
 	#[inline(always)]
 	pub fn new(capacity: usize, number_of_producers: usize) -> (RingBufferConsumer<T>, Vec<RingBufferProducer<T>>)
 	{
-		let inner = RingBufferInner::allocate(capacity, number_of_producers);
+		let ring_buffer_inner_non_null = RingBufferInner::allocate(capacity, number_of_producers);
 
 		let ring_buffer = Self
 		{
-			inner,
-			inner_drop_handle: Arc::new(RingBufferInnerDropHandler(inner)),
+			ring_buffer_inner_non_null,
+			inner_drop_handle: Arc::new(RingBufferInnerDropHandler(ring_buffer_inner_non_null)),
 			marker: PhantomData,
 		};
 
@@ -51,6 +53,6 @@ impl<T: Copy> RingBuffer<T>
 	#[inline(always)]
 	pub(crate) fn reference(&self) -> &RingBufferInner<T>
 	{
-		unsafe { & * self.inner.as_ptr() }
+		unsafe { & * self.ring_buffer_inner_non_null.as_ptr() }
 	}
 }
