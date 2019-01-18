@@ -26,15 +26,21 @@ struct RingBufferInnerHeader<T: Copy>
 
 impl<T: Copy> RingBufferInnerHeader<T>
 {
-	const WrapCounter: usize = 0x7FFFFFFF00000000;
+	#[cfg(target_pointer_width = "64")] const WrapCounter: usize = 0x7FFFFFFF00000000;
+	#[cfg(target_pointer_width = "32")] const WrapCounter: usize = 0x7FFF0000;
+	#[cfg(target_pointer_width = "16")] const WrapCounter: usize = 0x7F00;
 
-	const WrapLockBit: RingBufferOffset = 0x8000000000000000;
+	#[cfg(target_pointer_width = "64")] const WrapLockBit: RingBufferOffset = 0x8000000000000000;
+	#[cfg(target_pointer_width = "32")] const WrapLockBit: RingBufferOffset = 0x80000000;
+	#[cfg(target_pointer_width = "16")] const WrapLockBit: RingBufferOffset = 0x8000;
 
 	const WrapLockMask: RingBufferOffset = !Self::WrapLockBit;
 
 	const MaximumOffset: RingBufferOffset = ::std::usize::MAX & Self::WrapLockMask;
 
-	const OffsetMask: RingBufferOffset = 0x00000000FFFFFFFF;
+	#[cfg(target_pointer_width = "64")] const OffsetMask: RingBufferOffset = 0x00000000FFFFFFFF;
+	#[cfg(target_pointer_width = "32")] const OffsetMask: RingBufferOffset = 0x0000FFFF;
+	#[cfg(target_pointer_width = "16")] const OffsetMask: RingBufferOffset = 0x00FF;
 
 	#[inline(always)]
 	pub(crate) fn acquire(&self, producer: &mut RingBufferProducerInner, count: usize) -> Result<usize, ()>
